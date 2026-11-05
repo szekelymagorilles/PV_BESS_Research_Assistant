@@ -218,3 +218,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# --- Egyedi projekt fájlok ---
+# Vektoradatbázis (hatalmas méretű, ne töltsük fel)
+chroma_db/
+
+# PDF fájlok (jogvédett és nagy méretű bináris fájlok)
+docs/*.pdf
+
+# Titkosított kulcsok és környezeti változók
+.env
+
+# Adatfájlok (pl. tesztadatok, hogy ne terheljék a repót)
+data/*.csv
