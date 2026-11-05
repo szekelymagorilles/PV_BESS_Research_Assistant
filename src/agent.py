@@ -1,4 +1,3 @@
-# src/agent.py
 import os
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
@@ -17,22 +16,20 @@ def simulate_pv(capacity_kw: float) -> str:
     """
     return f'Szimuláció kész: a(z) {capacity_kw} kW kapacitású rendszer elméleti napi hozama kiszámítva.'
 
-# 2. Ágens inicializálása
-def create_research_agent(model_name: str = 'llama-3.1-8b-instant', temperature: float = 0.0):
+# 2. Ágens inicializálása - A te beállításaid alapján!
+def create_research_agent(model_name: str = 'qwen/qwen3.8-27b', temperature: float = 0.0, max_tokens: int = 900):
     """
     Létrehozza a Tool-Calling ágenst a Groq LLM használatával.
-    Alapértelmezettként a gyors és pontos Llama 3.1 8B modellt használja.
+    A felhasználó által tesztelt stabil modellt (Qwen) használja.
     """
-    # A GROQ_API_KEY környezeti változónak beállítva kell lennie!
     if not os.environ.get("GROQ_API_KEY"):
         raise ValueError("Hiányzik a GROQ_API_KEY környezeti változó!")
         
-    print(f"LLM (Groq) inicializálása: {model_name}...")
-    llm = ChatGroq(model=model_name, temperature=temperature, max_tokens=1024)
+    print(f"LLM (Groq) inicializálása: {model_name} (Max tokens: {max_tokens})...")
+    llm = ChatGroq(model=model_name, temperature=temperature, max_tokens=max_tokens)
     
     tools = [simulate_pv]
     
-    # Rendszer Prompt definiálása, amely kifejezetten utasítja a modellt a zaj szűrésére
     prompt = ChatPromptTemplate.from_messages([
         ("system", 
          "Szakértő kutatási asszisztens vagy a PV-BESS (Napelem és Akkumulátoros Energiatároló) rendszerek optimalizációjának területén. "
@@ -44,9 +41,7 @@ def create_research_agent(model_name: str = 'llama-3.1-8b-instant', temperature:
         ("placeholder", "{agent_scratchpad}"),
     ])
     
-    # Ágens és Végrehajtó (Executor) létrehozása
     agent = create_tool_calling_agent(llm, tools, prompt)
-    # A verbose=True miatt látni fogjuk az ágens belső "gondolatmenetét"
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
     
     print("Kutatási Ágens (AgentExecutor) sikeresen felépítve!")
