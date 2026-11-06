@@ -1,4 +1,3 @@
-# src/bess_optimization.py
 import pulp
 import pandas as pd
 
@@ -19,30 +18,30 @@ def optimize_bess_schedule(pv_generation: list, load_demand: list,
     # 1. Probléma definiálása (Minimalizálás)
     prob = pulp.LpProblem("BESS_MPC_Optimization", pulp.LpMinimize)
     
-    # 2. Döntési Változók (P_ch: Töltés, P_dis: Kisütés, SoC: Töltöttség, P_grid: Hálózati import)
+    # 2. Döntési Változók
     P_ch = [pulp.LpVariable(f"P_ch_{t}", lowBound=0, upBound=max_power_kw) for t in range(hours)]
     P_dis = [pulp.LpVariable(f"P_dis_{t}", lowBound=0, upBound=max_power_kw) for t in range(hours)]
     SoC = [pulp.LpVariable(f"SoC_{t}", lowBound=soc_min * bess_capacity_kwh, upBound=soc_max * bess_capacity_kwh) for t in range(hours)]
     P_grid = [pulp.LpVariable(f"P_grid_{t}", lowBound=0) for t in range(hours)]
     
     # 3. Célfüggvény
-    # Nagyon drága a hálózati energia vételezése (10.0 súly), 
-    # és enyhén büntetjük az akkumulátor felesleges ciklizálását (degradáció) (0.1 súly)
     prob += pulp.lpSum([P_grid[t] * 10.0 + (P_ch[t] + P_dis[t]) * 0.1 for t in range(hours)])
+    
+    # JAVÍTÁS: Kiszámoljuk a hatásfok reciprokát, hogy szorozni tudjunk osztás helyett!
+    inv_eta = 1.0 / eta
     
     # 4. Kényszerek (Constraints) felírása
     for t in range(hours):
-        # Teljesítmény egyenleg: PV + Hálózat + Kisütés == Fogyasztás + Töltés
+        # Teljesítmény egyenleg
         prob += pv_generation[t] + P_grid[t] + P_dis[t] == load_demand[t] + P_ch[t], f"Energy_Balance_{t}"
         
         # Akkumulátor dinamika (SoC frissítése)
         if t == 0:
-            # Kezdeti SoC feltételezett 50%
-            prob += SoC[t] == 0.5 * bess_capacity_kwh + (P_ch[t] * eta - P_dis[t] / eta), f"SoC_Update_{t}"
+            prob += SoC[t] == 0.5 * bess_capacity_kwh + (P_ch[t] * eta - P_dis[t] * inv_eta), f"SoC_Update_{t}"
         else:
-            prob += SoC[t] == SoC[t-1] + (P_ch[t] * eta - P_dis[t] / eta), f"SoC_Update_{t}"
+            prob += SoC[t] == SoC[t-1] + (P_ch[t] * eta - P_dis[t] * inv_eta), f"SoC_Update_{t}"
 
-    # 5. Optimalizáló (Solver) futtatása némán
+    # 5. Optimalizáló futtatása
     prob.solve(pulp.PULP_CBC_CMD(msg=False))
     
     # 6. Eredmények formázása
