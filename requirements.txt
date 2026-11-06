@@ -12,3 +12,5 @@ datasets
 pydantic
 pvlib
 pandas
+numpy
+pulp
