@@ -1,0 +1,11 @@
+
+[
+    {
+        "question": "Milyen kényszereket alkalmaznak a BESS MPC irányításánál?",
+        "ground_truth": "A BESS MPC irányítása során figyelembe veszik a hálózati feszültség kényszereket, az akkumulátor töltöttségi szintjének (SoC) határait, valamint a töltési és kisütési teljesítmény korlátait a biztonság és a megbízhatóság érdekében."
+    },
+    {
+        "question": "Mi a szerepe az akkumulátoros energiatárolónak (BESS) a hálózatban?",
+        "ground_truth": "A BESS fő szerepe a megújuló termelés ingadozásainak kiegyenlítése, a csúcsterhelés szabályozása (peak regulation), a frekvenciaszabályozás, valamint az optimális teljesítményáramlás biztosítása."
+    }
+]
