@@ -13,4 +13,4 @@ pydantic
 pvlib
 pandas
 numpy
-pulp
+pulp==2.8.0
